@@ -1,335 +1,319 @@
-# import numpy as np
-# import pandas as pd
-# import streamlit as st
-# import requests
-# import pickle
-# import base64
-
-# # TMDb API key
-# API_KEY = 'c9cb5ec336fa36659fbba0ba516298dc'
-
-# # Function to fetch the poster from TMDb API
-# def fetch_poster(movie_id):
-
-#     url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US'
-#     response = requests.get(url)
-#     data = response.json()
-#     full_path = "https://image.tmdb.org/t/p/w500/" + data['poster_path']
-#     return full_path
-
-# # Function to fetch popular movies from TMDb API
-# def fetch_popular_movies():
-#     url = f'https://api.themoviedb.org/3/movie/popular?api_key={API_KEY}&language=en-US'
-#     response = requests.get(url)
-#     data = response.json()
-
-#     popular_movies = []
-#     for movie in data['results'][:10]:  # Limit to 10 movies
-#         popular_movies.append({
-#             'title': movie['title'],
-#             'poster_path': movie['poster_path'],
-#             'overview': movie['overview']
-#         })
-    
-#     return popular_movies
-
-
-# # Function to fetch the YouTube trailer from TMDb API
-# def fetch_trailer(movie_id):
-#     url = f'https://api.themoviedb.org/3/movie/{movie_id}/videos?api_key={API_KEY}&language=en-US'
-#     response = requests.get(url)
-#     data = response.json()
-    
-#     trailers = [video for video in data['results'] if video['site'] == 'YouTube' and video['type'] == 'Trailer']
-    
-#     if trailers:
-#         return trailers[0]['key']  # Return the YouTube key for embedding
-#     return None
-
-# def fetch_upcoming_movies():
-#     url = f'https://api.themoviedb.org/3/movie/upcoming?api_key={API_KEY}&language=en-US'
-#     response = requests.get(url)
-#     data = response.json()
-
-#     upcoming_movies = []
-#     for movie in data['results'][:10]:  # Limit to 10 movies
-#         upcoming_movies.append({
-#             'title': movie['title'],
-#             'poster_path': movie['poster_path'],
-#             'overview': movie['overview']
-#         })
-    
-#     return upcoming_movies
-
-# # Function to fetch trending movies from TMDb API
-# def fetch_trending_movies():
-#     url = f'https://api.themoviedb.org/3/trending/movie/week?api_key={API_KEY}&language=en-US'
-#     response = requests.get(url)
-#     data = response.json()
-
-#     trending_movies = []
-#     for movie in data['results'][:10]:  # Limit to 10 movies
-#         trending_movies.append({
-#             'title': movie['title'],
-#             'poster_path': movie['poster_path'],
-#             'overview': movie['overview']
-#         })
-    
-#     return trending_movies
-
-
-# # Function to fetch movie details (director, cast, reviews)
-# def fetch_movie_details(movie_id):
-#     url_credits = f'https://api.themoviedb.org/3/movie/{movie_id}/credits?api_key={API_KEY}&language=en-US'
-#     response_credits = requests.get(url_credits)
-#     credits_data = response_credits.json()
-
-#     url_reviews = f'https://api.themoviedb.org/3/movie/{movie_id}/reviews?api_key={API_KEY}&language=en-US'
-#     response_reviews = requests.get(url_reviews)
-#     reviews_data = response_reviews.json()
-
-#     director = next((crew_member['name'] for crew_member in credits_data['crew'] if crew_member['job'] == 'Director'), None)
-#     cast_list = [cast_member['name'] for cast_member in credits_data['cast'][:5]]
-#     reviews = [review['content'] for review in reviews_data['results'][:3]]
-
-#     return director, cast_list, reviews
-
-# def set_background(image_file):
-#     with open(image_file, "rb") as image:
-#         encoded_string = base64.b64encode(image.read()).decode()
-
-#     bg_img = f"""
-#     <style>
-#     .stApp {{
-#         background-image: url("data:image/png;base64,{encoded_string}");
-#         background-size: cover;
-#         background-position: center;
-#         background-attachment: fixed;
-#     }}
-#     </style>
-#     """
-#     st.markdown(bg_img, unsafe_allow_html=True)
-
-# # Call the function to set background image
-# set_background("netflix_1.jpg")
-
-# # Function to get movie recommendations and their posters
-# def recommend(movie):
-#     index = movies[movies['title'] == movie].index[0]
-#     distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
-#     recommended_movie_names = []
-#     recommended_movie_posters = []
-#     recommended_movie_ids = []
-
-#     for i in distances[1:6]:
-#         movie_id = movies.iloc[i[0]].movie_id    
-#         recommended_movie_ids.append(movie_id)
-#         recommended_movie_names.append(movies.iloc[i[0]].title)
-#         recommended_movie_posters.append(fetch_poster(movie_id))
-
-#     return recommended_movie_names, recommended_movie_posters, recommended_movie_ids
-
-# # Load the saved movie data
-# movies_dict = pickle.load(open('movie_dict1.pkl', 'rb')) 
-# movies = pd.DataFrame(movies_dict)
-
-# # Load the similarity model
-# similarity = pickle.load(open('similarity.pkl', 'rb'))
-
-# # Function to get background image
-# def get_img_as_base64(file):
-#     with open(file, "rb") as f:
-#         data = f.read()
-#     return base64.b64encode(data).decode()
-
-
-# # Main app title
-# st.markdown('<h1 style="color:#FFFFFF;text-align:center;">Movie Recommendation System</h1>', unsafe_allow_html=True)
-
-# # Tabs for interactive sections
-# tab1, tab2, tab3, tab4 = st.tabs(["Recommendations", "Popular", "Trending", "Upcoming"])
-
-# # Recommendations Tab
-# with tab1:
-#     selected_movie_name = st.selectbox("Choose a Movie You Like:", movies['title'].values)
-
-#     if st.button("Get Recommendations"):
-#         recommended_names, recommended_posters, recommended_movie_ids = recommend(selected_movie_name)
-        
-#         st.markdown('<h2 style="color:#FFFFFF;">Recommended Movies</h2>', unsafe_allow_html=True)
-        
-#         for i in range(len(recommended_names)):
-#             with st.container():
-#                 col1, col2 = st.columns([1, 2])
-#                 with col1:
-#                     st.image(recommended_posters[i], width=150)
-#                 with col2:
-#                     st.markdown(f"<h3 style='color: #FFFFFF;'>{recommended_names[i]}</h3>", unsafe_allow_html=True)
-                
-#                     youtube_key = fetch_trailer(recommended_movie_ids[i])
-#                     if youtube_key:
-#                         st.markdown(
-#                             f'<iframe width="80%" height="180" src="https://www.youtube.com/embed/{youtube_key}" frameborder="0" allowfullscreen></iframe>',
-#                             unsafe_allow_html=True)
-                    
-#                     director, cast, reviews = fetch_movie_details(recommended_movie_ids[i])
-#                     st.markdown(f"<div><strong>Director:</strong> {director}</div>", unsafe_allow_html=True)
-#                     st.markdown(f"<div><strong>Cast:</strong> {', '.join(cast)}</div>", unsafe_allow_html=True)
-                    
-#                     if reviews:
-#                         st.markdown("<strong>User Reviews:</strong>", unsafe_allow_html=True)
-#                         for review in reviews:
-#                             st.markdown(f"<div style='background-color: rgba(0, 0, 0, 0.45);'>{review}</div>", unsafe_allow_html=True)
-
-# # Popular Movies Tab
-# with tab2:
-#     if st.button("Show Popular Movies"):
-#         popular_movies = fetch_popular_movies()
-#         for movie in popular_movies[:10]:
-#             with st.expander(movie['title']):
-#                 st.image(f"https://image.tmdb.org/t/p/w500/{movie['poster_path']}", width=150)
-#                 st.write(movie['overview'])
-
-# # Trending Movies Tab
-# with tab3:
-#     if st.button("Show Trending Movies"):
-#         trending_movies = fetch_trending_movies()
-#         for movie in trending_movies[:10]:
-#             with st.expander(movie['title']):
-#                 st.image(f"https://image.tmdb.org/t/p/w500/{movie['poster_path']}", width=150)
-#                 st.write(movie['overview'])
-
-# # Upcoming Movies Tab
-# with tab4:
-#     if st.button("Show Upcoming Movies"):
-#         upcoming_movies = fetch_upcoming_movies()
-#         for movie in upcoming_movies[:10]:
-#             with st.expander(movie['title']):
-#                 st.image(f"https://image.tmdb.org/t/p/w500/{movie['poster_path']}", width=150)
-#                 st.write(movie['overview'])
-
-
-
-# ----------------------------------------------------
-
-import numpy as np
-import pandas as pd
 import streamlit as st
 import requests
 import pickle
+import pandas as pd
 import base64
-import time  # For animations
+from PIL import Image, ImageDraw, ImageFilter
+import io
 
-# TMDb API key
+# TMDb API Configuration
 API_KEY = 'c9cb5ec336fa36659fbba0ba516298dc'
+BASE_URL = 'https://api.themoviedb.org/3'
 
-# Function to fetch movie poster
-def fetch_poster(movie_id):
-    url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key={API_KEY}&language=en-US'
-    response = requests.get(url).json()
-    return f"https://image.tmdb.org/t/p/w500/{response['poster_path']}"
-
-# Function to set the background image
-def set_background(image_file):
-    with open(image_file, "rb") as image:
-        encoded_string = base64.b64encode(image.read()).decode()
-
-    bg_img = f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/png;base64,{encoded_string}");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        background-blend-mode: darken;
-    }}
-    </style>
-    """
-    st.markdown(bg_img, unsafe_allow_html=True)
-
-# Apply background image
-set_background("netflix_1.jpg")
-
-# Custom CSS for stylish UI
-st.markdown("""
-    <style>
-        h1 { text-align: center; font-size: 48px; color: #ffcc00; text-shadow: 2px 2px 8px #000; }
-        .movie-card { border-radius: 10px; background-color: rgba(255, 255, 255, 0.1); padding: 15px; text-align: center; transition: 0.3s; }
-        .movie-card:hover { transform: scale(1.05); box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.5); }
-        .movie-title { color: #FFFFFF; font-size: 22px; font-weight: bold; }
-        .movie-desc { color: #cccccc; font-size: 14px; }
-        .stButton > button { background-color: #ffcc00; color: black; font-size: 18px; border-radius: 10px; }
-    </style>
-""", unsafe_allow_html=True)
-
-# Load movie data and similarity model
-movies_dict = pickle.load(open('movie_dict1.pkl', 'rb'))
-movies = pd.DataFrame(movies_dict)
+# -------------------- Data Loading --------------------
+# -------------------- Data Loading --------------------
+movies = pd.DataFrame(pickle.load(open('movie_dict1.pkl', 'rb')))  # Corrected line
 similarity = pickle.load(open('similarity.pkl', 'rb'))
 
-# Function to get movie recommendations
-def recommend(movie):
-    index = movies[movies['title'] == movie].index[0]
-    distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
+# -------------------- Helper Functions --------------------
+def fetch_poster(movie_id):
+    try:
+        response = requests.get(f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}")
+        data = response.json()
+        return f"https://image.tmdb.org/t/p/w500/{data['poster_path']}" if data.get('poster_path') else None
+    except:
+        return None
 
-    recommended_movies = [
-        {
-            'title': movies.iloc[i[0]].title,
-            'poster_path': fetch_poster(movies.iloc[i[0]].movie_id),
-            'movie_id': movies.iloc[i[0]].movie_id
-        }
-        for i in distances[1:6]
-    ]
-    return recommended_movies
-
-# Main app title
-st.markdown('<h1>🎬 Movie Recommendation System 🍿</h1>', unsafe_allow_html=True)
-
-# Tabs for sections
-tab1, tab2 = st.tabs(["✨ Recommendations", "🔥 Popular Movies"])
-
-# Recommendations Tab
-with tab1:
-    selected_movie = st.selectbox("Choose a Movie You Like:", movies['title'].values)
-
-    if st.button("🔍 Get Recommendations"):
-        with st.spinner("✨ Finding the best movies for you..."):
-            time.sleep(2)  # Simulating a delay
-        recommended_movies = recommend(selected_movie)
-
-        st.markdown('<h2 style="color:#FFFFFF;">Recommended Movies for You 🎥</h2>', unsafe_allow_html=True)
-
-        # Display in a grid format
-        col1, col2, col3 = st.columns(3)
-        columns = [col1, col2, col3]
+def fetch_movie_details(movie_id):
+    try:
+        details = requests.get(f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}").json()
+        credits = requests.get(f"{BASE_URL}/movie/{movie_id}/credits?api_key={API_KEY}").json()
+        reviews = requests.get(f"{BASE_URL}/movie/{movie_id}/reviews?api_key={API_KEY}").json()
         
-        for idx, movie in enumerate(recommended_movies):
-            with columns[idx % 3]:  # Distribute in 3 columns
-                st.markdown(f"""
-                    <div class="movie-card">
-                        <img src="{movie['poster_path']}" width="100%">
-                        <p class="movie-title">{movie['title']}</p>
-                        <p class="movie-desc">⭐ ⭐ ⭐ ⭐ (4.5/5)</p>
-                    </div>
-                """, unsafe_allow_html=True)
+        return {
+            'title': details.get('title'),
+            'poster': fetch_poster(movie_id),
+            'overview': details.get('overview'),
+            'rating': details.get('vote_average'),
+            'runtime': details.get('runtime'),
+            'genres': [g['name'] for g in details.get('genres', [])],
+            'director': next((c['name'] for c in credits.get('crew', []) if c['job'] == 'Director'), None),
+            'cast': [c['name'] for c in credits.get('cast', [])[:5]],
+            'reviews': [r['content'] for r in reviews.get('results', [])[:3]],
+            'trailer': get_trailer_key(movie_id)
+        }
+    except:
+        return None
 
-# Popular Movies Tab
-with tab2:
-    if st.button("🔥 Show Popular Movies"):
-        url = f'https://api.themoviedb.org/3/movie/popular?api_key={API_KEY}&language=en-US'
-        response = requests.get(url).json()
-        popular_movies = response['results'][:6]  # Get top 6
+def get_trailer_key(movie_id):
+    try:
+        videos = requests.get(f"{BASE_URL}/movie/{movie_id}/videos?api_key={API_KEY}").json()
+        return next((v['key'] for v in videos['results'] if v['type'] == 'Trailer' and v['site'] == 'YouTube'), None)
+    except:
+        return None
 
-        col1, col2, col3 = st.columns(3)
-        columns = [col1, col2, col3]
+def fetch_popular_movies():
+    response = requests.get(f"{BASE_URL}/movie/popular?api_key={API_KEY}")
+    return [{'id': m['id'], 'title': m['title']} for m in response.json()['results'][:10]]
 
-        for idx, movie in enumerate(popular_movies):
-            with columns[idx % 3]:  # Distribute in 3 columns
-                st.markdown(f"""
-                    <div class="movie-card">
-                        <img src="https://image.tmdb.org/t/p/w500/{movie['poster_path']}" width="100%">
-                        <p class="movie-title">{movie['title']}</p>
-                        <p class="movie-desc">{movie['overview'][:100]}...</p>
-                    </div>
-                """, unsafe_allow_html=True)
+def fetch_trending_movies():
+    response = requests.get(f"{BASE_URL}/trending/movie/week?api_key={API_KEY}")
+    return [{'id': m['id'], 'title': m['title']} for m in response.json()['results'][:10]]
 
+def fetch_upcoming_movies():
+    response = requests.get(f"{BASE_URL}/movie/upcoming?api_key={API_KEY}")
+    return [{'id': m['id'], 'title': m['title']} for m in response.json()['results'][:10]]
+
+def recommend(movie_title):
+    try:
+        idx = movies[movies['title'] == movie_title].index[0]
+        sim_scores = list(enumerate(similarity[idx]))
+        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:6]
+        return [movies.iloc[i[0]].movie_id for i in sim_scores]
+    except:
+        return []
+
+# -------------------- Custom Styling --------------------
+def inject_custom_style():
+    st.markdown("""
+    <style>
+    :root {
+        --primary: #00ff9d;
+        --secondary: #0066ff;
+        --bg: #0a0a0f;
+        --surface: #161622;
+        --text: #e0e0e0;
+        --border: rgba(255,255,255,0.1);
+    }
+
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    .stApp {
+        background: linear-gradient(180deg, var(--bg) 0%, #000000 100%);
+    }
+
+    .movie-card {
+        display:none;
+        background: var(--surface);
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        padding: 1.5rem;
+        margin: 1rem 0;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+                
+    .movie-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 255, 157, 0.1);
+    }
+                
+    .stAlertContainer {
+        display:none;
+    }
+
+    .stSelectbox div[data-baseweb="select"] {
+        background: var(--surface);
+        border-color: var(--border) !important;
+        color: var(--text) !important;
+    }
+
+    .stButton button {
+        background: linear-gradient(45deg, var(--primary), var(--secondary)) !important;
+        border: none !important;
+        color: black !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .stButton button:hover {
+        opacity: 0.9 !important;
+        transform: scale(1.02) !important;
+    }
+
+    .stTabs [aria-selected="true"] {
+        color: var(--primary) !important;
+        border-bottom: 2px solid var(--primary) !important;
+    }
+
+    .genre-tag {
+        display: inline-block;
+        padding: 4px 12px;
+        background: rgba(0, 255, 157, 0.1);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        margin: 4px 2px;
+        border: 1px solid var(--primary);
+    }
+
+    .review-card {
+        background: rgba(255,255,255,0.05);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+        border-left: 3px solid var(--primary);
+    }
+
+    .trailer-container {
+        border-radius: 12px;
+        overflow: hidden;
+        margin: 1rem 0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# -------------------- App Setup --------------------
+st.set_page_config(page_title="CineVerse", page_icon="🎬", layout="wide")
+inject_custom_style()
+
+# -------------------- Header --------------------
+st.markdown("""
+<div style="text-align:center; padding:4rem 0 3rem;">
+    <h1 style="font-size:3.5rem; margin:0; 
+    background:linear-gradient(45deg, #00ff9d, #0066ff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+        CineVerse
+    </h1>
+    <p style="opacity:0.8; font-size:1.1rem;">
+        Discover Your Next Favorite Movie • Powered by TMDb
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+# -------------------- Main Content --------------------
+tabs = st.tabs(["🎬 Recommendations", "🔥 Trending Now", "📅 Coming Soon", "⭐ Popular Picks"])
+
+with tabs[0]:
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        selected_movie = st.selectbox("Select a movie you enjoy:", movies['title'].values)
+    with col2:
+        st.write("\n")
+        generate_btn = st.button("Generate Recommendations")
+    
+    if generate_btn:
+        with st.spinner("Analyzing cinematic patterns..."):
+            movie_ids = recommend(selected_movie)
+        
+        st.subheader(f"Because you liked {selected_movie}", divider="rainbow")
+        
+        cols = st.columns(5)
+        for idx, movie_id in enumerate(movie_ids):
+            details = fetch_movie_details(movie_id)
+            if details:
+                with cols[idx % 5]:
+                    with st.container():
+                        st.markdown("<div class='movie-card'>", unsafe_allow_html=True)
+                        
+                        # Poster Image
+                        if details['poster']:
+                            st.image(details['poster'], use_column_width=True)
+                        
+                        # Title and Metadata
+                        st.markdown(f"{details['title']}")
+                        st.caption(f"⭐ {details['rating']} • {details['runtime']} mins")
+                        
+                        # Genres
+                        if details['genres']:
+                            st.markdown("".join([f"<span class='genre-tag'>{g}</span>" for g in details['genres'][:3]]), 
+                                      unsafe_allow_html=True)
+                        
+                        # Expandable Details
+                        with st.expander("More Details"):
+                            if details['director']:
+                                st.markdown("🎬 Director**")
+                                st.markdown(f"<div style='margin-bottom:1.5rem;'>{details['director']}</div>", unsafe_allow_html=True)
+                            
+                            st.markdown("🌟 Top Cast**")
+                            st.markdown("<div style='margin-bottom:1.5rem;'>" + "<br>".join(details['cast']) + "</div>", unsafe_allow_html=True)
+                            
+                            if details['reviews']:
+                                st.write("*Top Reviews:*")
+                                for review in details['reviews']:
+                                    st.markdown(f"<div class='review-card'>{review[:200]}...</div>", 
+                                                unsafe_allow_html=True)
+                            
+                            if details['trailer']:
+                                st.markdown(f"""
+                                <div class='trailer-container'>
+                                    <iframe width="100%" height="200" 
+                                    src="https://www.youtube.com/embed/{details['trailer']}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                                    </iframe>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
+
+with tabs[1]:  # Trending Now
+    with st.spinner("Loading trending movies..."):
+        trending_movies = fetch_trending_movies()
+    
+    st.subheader("🔥 Trending This Week", divider="rainbow")
+    cols = st.columns(5)
+    for idx, movie in enumerate(trending_movies[:10]):
+        details = fetch_movie_details(movie['id'])
+        if details:
+            with cols[idx % 5]:
+                with st.container():
+                    st.markdown("<div class='movie-card'>", unsafe_allow_html=True)
+                    if details['poster']:
+                        st.image(details['poster'], use_column_width=True)
+                    st.markdown(f"{details['title']}")
+                    st.caption(f"⭐ {details['rating']} • {details['runtime']} mins")
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+with tabs[2]:  # Coming Soon
+    with st.spinner("Loading upcoming releases..."):
+        upcoming_movies = fetch_upcoming_movies()
+    
+    st.subheader("📅 Coming Soon to Theaters", divider="rainbow")
+    cols = st.columns(5)
+    for idx, movie in enumerate(upcoming_movies[:10]):
+        details = fetch_movie_details(movie['id'])
+        if details:
+            with cols[idx % 5]:
+                with st.container():
+                    st.markdown("<div class='movie-card'>", unsafe_allow_html=True)
+                    if details['poster']:
+                        st.image(details['poster'], use_column_width=True)
+                    st.markdown(f"{details['title']}")
+                    st.caption(f"⭐ {details['rating']} • {details['runtime']} mins")
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+with tabs[3]:  # Popular Picks
+    with st.spinner("Loading popular movies..."):
+        popular_movies = fetch_popular_movies()
+    
+    st.subheader("⭐ Currently Popular", divider="rainbow")
+    cols = st.columns(5)
+    for idx, movie in enumerate(popular_movies[:10]):
+        details = fetch_movie_details(movie['id'])
+        if details:
+            with cols[idx % 5]:
+                with st.container():
+                    st.markdown("<div class='movie-card'>", unsafe_allow_html=True)
+                    if details['poster']:
+                        st.image(details['poster'], use_column_width=True)
+                    st.markdown(f"{details['title']}")
+                    st.caption(f"⭐ {details['rating']} • {details['runtime']} mins")
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+# -------------------- Footer --------------------
+st.markdown("""
+<div style="text-align:center; padding:3rem 0 2rem; opacity:0.8;">
+    <hr style="border-color:var(--border);">
+    <p style="font-size:0.9rem;">
+        Powered by TMDb API • Data refreshes every 24 hours
+    </p>
+</div>
+""", unsafe_allow_html=True)
