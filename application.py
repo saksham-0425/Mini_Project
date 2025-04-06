@@ -101,12 +101,18 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     .movie-card {
+        display:none;
         background: #161622;
         border-radius: 16px;
         border: 1px solid rgba(255,255,255,0.1);
         padding: 1.5rem;
         margin: 1rem 0;
     }
+
+    .stAlertContainer{
+        display:none;
+    }             
+
     .genre-tag {
         background: rgba(0, 255, 157, 0.1);
         padding: 4px 12px;
