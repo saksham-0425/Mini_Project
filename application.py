@@ -5,15 +5,23 @@ import pandas as pd
 import base64
 from PIL import Image, ImageDraw, ImageFilter
 import io
+import gdown  # Added to download similarity.pkl from Google Drive
 
 # TMDb API Configuration
 API_KEY = 'c9cb5ec336fa36659fbba0ba516298dc'
 BASE_URL = 'https://api.themoviedb.org/3'
 
+# -------------------- Download similarity.pkl from Google Drive --------------------
+# File ID from your shared Google Drive link
+file_id = '1yz5J_bO6YhwsNnDakBR7WFQPWwhjUX_j'
+url = f'https://drive.google.com/uc?id={file_id}'
+output_path = 'similarity.pkl'
+gdown.download(url, output_path, quiet=False)
+
 # -------------------- Data Loading --------------------
-# -------------------- Data Loading --------------------
-movies = pd.DataFrame(pickle.load(open('movie_dict1.pkl', 'rb')))  # Corrected line
-similarity = pickle.load(open('similarity.pkl', 'rb'))
+movies = pd.DataFrame(pickle.load(open('movie_dict1.pkl', 'rb')))
+with open('similarity.pkl', 'rb') as f:
+    similarity = pickle.load(f)
 
 # -------------------- Helper Functions --------------------
 def fetch_poster(movie_id):
@@ -100,7 +108,6 @@ def inject_custom_style():
     }
 
     .movie-card {
-        display:none;
         background: var(--surface);
         border-radius: 16px;
         border: 1px solid var(--border);
@@ -108,14 +115,14 @@ def inject_custom_style():
         margin: 1rem 0;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-                
+
     .movie-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 24px rgba(0, 255, 157, 0.1);
     }
-                
+
     .stAlertContainer {
-        display:none;
+        display: none;
     }
 
     .stSelectbox div[data-baseweb="select"] {
@@ -197,13 +204,13 @@ with tabs[0]:
     with col2:
         st.write("\n")
         generate_btn = st.button("Generate Recommendations")
-    
+
     if generate_btn:
         with st.spinner("Analyzing cinematic patterns..."):
             movie_ids = recommend(selected_movie)
-        
+
         st.subheader(f"Because you liked {selected_movie}", divider="rainbow")
-        
+
         cols = st.columns(5)
         for idx, movie_id in enumerate(movie_ids):
             details = fetch_movie_details(movie_id)
@@ -211,35 +218,30 @@ with tabs[0]:
                 with cols[idx % 5]:
                     with st.container():
                         st.markdown("<div class='movie-card'>", unsafe_allow_html=True)
-                        
-                        # Poster Image
+
                         if details['poster']:
                             st.image(details['poster'], use_column_width=True)
-                        
-                        # Title and Metadata
+
                         st.markdown(f"{details['title']}")
                         st.caption(f"⭐ {details['rating']} • {details['runtime']} mins")
-                        
-                        # Genres
+
                         if details['genres']:
-                            st.markdown("".join([f"<span class='genre-tag'>{g}</span>" for g in details['genres'][:3]]), 
-                                      unsafe_allow_html=True)
-                        
-                        # Expandable Details
+                            st.markdown("".join([f"<span class='genre-tag'>{g}</span>" for g in details['genres'][:3]]),
+                                        unsafe_allow_html=True)
+
                         with st.expander("More Details"):
                             if details['director']:
-                                st.markdown("🎬 Director**")
+                                st.markdown("🎬 **Director**")
                                 st.markdown(f"<div style='margin-bottom:1.5rem;'>{details['director']}</div>", unsafe_allow_html=True)
-                            
-                            st.markdown("🌟 Top Cast**")
+
+                            st.markdown("🌟 **Top Cast**")
                             st.markdown("<div style='margin-bottom:1.5rem;'>" + "<br>".join(details['cast']) + "</div>", unsafe_allow_html=True)
-                            
+
                             if details['reviews']:
                                 st.write("*Top Reviews:*")
                                 for review in details['reviews']:
-                                    st.markdown(f"<div class='review-card'>{review[:200]}...</div>", 
-                                                unsafe_allow_html=True)
-                            
+                                    st.markdown(f"<div class='review-card'>{review[:200]}...</div>", unsafe_allow_html=True)
+
                             if details['trailer']:
                                 st.markdown(f"""
                                 <div class='trailer-container'>
@@ -251,13 +253,14 @@ with tabs[0]:
                                     </iframe>
                                 </div>
                                 """, unsafe_allow_html=True)
-                        
+
                         st.markdown("</div>", unsafe_allow_html=True)
 
-with tabs[1]:  # Trending Now
+# Trending Now Tab
+with tabs[1]:
     with st.spinner("Loading trending movies..."):
         trending_movies = fetch_trending_movies()
-    
+
     st.subheader("🔥 Trending This Week", divider="rainbow")
     cols = st.columns(5)
     for idx, movie in enumerate(trending_movies[:10]):
@@ -272,10 +275,11 @@ with tabs[1]:  # Trending Now
                     st.caption(f"⭐ {details['rating']} • {details['runtime']} mins")
                     st.markdown("</div>", unsafe_allow_html=True)
 
-with tabs[2]:  # Coming Soon
+# Coming Soon Tab
+with tabs[2]:
     with st.spinner("Loading upcoming releases..."):
         upcoming_movies = fetch_upcoming_movies()
-    
+
     st.subheader("📅 Coming Soon to Theaters", divider="rainbow")
     cols = st.columns(5)
     for idx, movie in enumerate(upcoming_movies[:10]):
@@ -290,10 +294,11 @@ with tabs[2]:  # Coming Soon
                     st.caption(f"⭐ {details['rating']} • {details['runtime']} mins")
                     st.markdown("</div>", unsafe_allow_html=True)
 
-with tabs[3]:  # Popular Picks
+# Popular Picks Tab
+with tabs[3]:
     with st.spinner("Loading popular movies..."):
         popular_movies = fetch_popular_movies()
-    
+
     st.subheader("⭐ Currently Popular", divider="rainbow")
     cols = st.columns(5)
     for idx, movie in enumerate(popular_movies[:10]):
