@@ -3,3 +3,4 @@ To access the dataset-
 tmdb_dataset_credits.csv 
 tmdb_dataset_movies.csv
 to download- https://www.kaggle.com/datasets/tmdb/tmdb-movie-metadata/data
+u dumb
