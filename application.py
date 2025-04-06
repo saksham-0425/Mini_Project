@@ -168,6 +168,10 @@ def inject_custom_style():
         border-left: 3px solid var(--primary);
     }
 
+    .movie-card{
+        display:none;
+    }
+    
     .trailer-container {
         border-radius: 12px;
         overflow: hidden;
