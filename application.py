@@ -13,10 +13,13 @@ BASE_URL = 'https://api.themoviedb.org/3'
 
 # -------------------- Download similarity.pkl from Google Drive --------------------
 # File ID from your shared Google Drive link
-file_id = '1yz5J_bO6YhwsNnDakBR7WFQPWwhjUX_j'
+# -------------------- Download similarity.pkl from Google Drive --------------------
+# Correct File ID from your shared Google Drive link
+file_id = '1b71eWcMKkbV1ZG0r5w2Tdd2_-h-aEIfg'
 url = f'https://drive.google.com/uc?id={file_id}'
 output_path = 'similarity.pkl'
 gdown.download(url, output_path, quiet=False)
+
 
 # -------------------- Data Loading --------------------
 movies = pd.DataFrame(pickle.load(open('movie_dict1.pkl', 'rb')))
@@ -108,7 +111,6 @@ def inject_custom_style():
     }
 
     .movie-card {
-        display:none;
         background: var(--surface);
         border-radius: 16px;
         border: 1px solid var(--border);
