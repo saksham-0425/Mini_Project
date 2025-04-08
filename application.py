@@ -111,6 +111,7 @@ def inject_custom_style():
     }
 
     .movie-card {
+        display:none;
         background: var(--surface);
         border-radius: 16px;
         border: 1px solid var(--border);
